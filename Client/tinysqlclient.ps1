@@ -21,7 +21,7 @@ function Send-Message {
         $writer.WriteLine($message)
     }
     finally {
-        $writer.Close()
+        $writer.Close()//
         $stream.Close()
     }
 }
