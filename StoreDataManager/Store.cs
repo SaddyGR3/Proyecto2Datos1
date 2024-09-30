@@ -2,17 +2,10 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using Entities;
 
 namespace StoreDataManager
 {
-    public enum OperationStatus
-    {
-        Success,
-        DatabaseAlreadyExists,
-        DatabaseNotFound,
-        TableAlreadyExists,
-        Error
-    }
 
     public class ColumnDefinition
     {
