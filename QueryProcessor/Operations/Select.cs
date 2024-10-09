@@ -1,10 +1,5 @@
 ﻿using Entities;
 using StoreDataManager;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace QueryProcessor.Operations
 {
@@ -12,17 +7,36 @@ namespace QueryProcessor.Operations
     {
         public (OperationStatus, List<string>) Execute(string sentence)
         {
-            // Ejemplo: "SELECT * FROM tableName WHERE ID = 1;"
-            var whereClause = sentence.Contains("WHERE") ? sentence.Split("WHERE")[1].Trim(' ', ';') : null;
-            int? id = null;
-
-            if (!string.IsNullOrEmpty(whereClause))
+            // Asegúrate de que la sentencia comienza con SELECT
+            if (!sentence.StartsWith("SELECT", StringComparison.OrdinalIgnoreCase))
             {
-                id = int.Parse(whereClause.Split('=')[1].Trim());
+                Console.WriteLine("Error: La sentencia no comienza con SELECT.");
+                return (OperationStatus.Error, null);
             }
 
-            // Llamamos al Store para hacer la búsqueda
-            return Store.GetInstance().Select(id);
+            // Extraer el nombre de la tabla después de FROM
+            var tableName = sentence.Split("FROM")[1]?.Trim(';', ' ', '(', ')');
+            if (string.IsNullOrEmpty(tableName))
+            {
+                Console.WriteLine("Error: No se encontró el nombre de la tabla.");
+                return (OperationStatus.Error, null);
+            }
+
+            // Llamar al Store Data Manager para seleccionar desde la tabla especificada
+            var (status, records) = Store.GetInstance().SelectFromTable(tableName);
+
+            if (status == OperationStatus.Success && records != null)
+            {
+                Console.WriteLine($"Registros en la tabla {tableName}:");
+                foreach (var record in records)
+                {
+                    Console.WriteLine(record);  // Mostrar cada registro
+                }
+            }
+
+            return (status, records);
         }
     }
 }
+
+

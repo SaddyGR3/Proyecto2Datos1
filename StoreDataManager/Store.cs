@@ -112,38 +112,44 @@ namespace StoreDataManager
 
 
         // Método para seleccionar registros, basado en un ID opcional
-        public (OperationStatus, List<string>) Select(int? id = null)
+        public (OperationStatus, List<string>) SelectFromTable(string tableName)
         {
             try
             {
-                var results = new List<string>();
-                using (StreamReader reader = new StreamReader(DatabaseFilePath))
+                // Generar la ruta del archivo correspondiente a la tabla
+                string tableFilePath = $@"C:\TinySql\Data\{tableName}.txt";
+
+                // Verificar si la tabla existe (archivo)
+                if (!File.Exists(tableFilePath))
+                {
+                    Console.WriteLine($"Error: La tabla {tableName} no existe.");
+                    return (OperationStatus.Error, null);  // Retorna Error si la tabla no existe
+                }
+
+                // Lista para almacenar los registros
+                var records = new List<string>();
+
+                // Leer el archivo de la tabla
+                using (StreamReader reader = new StreamReader(tableFilePath))
                 {
                     string? line;
                     while ((line = reader.ReadLine()) != null)
                     {
-                        // Cada línea es un registro en formato "id,comida,dia"
-                        var parts = line.Split(',');
-                        if (parts.Length != 3) continue;
-
-                        int recordId = int.Parse(parts[0].Trim());
-
-                        // Si se especifica un ID, solo seleccionamos el registro con ese ID
-                        if (id == null || recordId == id)
-                        {
-                            results.Add(line);
-                        }
+                        records.Add(line);  // Agregar cada línea al listado
                     }
                 }
 
-                return (OperationStatus.Success, results);
+                return (OperationStatus.Success, records);  // Retorna éxito y los registros leídos
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error al seleccionar: {ex.Message}");
-                return (OperationStatus.Error, null);
+                Console.WriteLine($"Error al seleccionar desde la tabla: {ex.Message}");
+                return (OperationStatus.Error, null);  // Retorna Error si ocurre una excepción
             }
         }
+
+
+
 
         // Método para eliminar un registro basado en el ID
         public OperationStatus Delete(int id)

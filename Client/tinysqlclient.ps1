@@ -123,7 +123,7 @@ while ($true) {
 }
 
 # Ejemplos de uso
-#INSERT INTO comidas (ID, Comida, Día) VALUES (3,"Pescado", "Martes")
+#INSERT INTO Estudiantes VALUES (1, 'Pizza', 'Lunes');
 #SELECT * FROM comidas
 #DELETE FROM comidas WHERE ID = 1
-#CREATE TABLE Estudiantes (ID INT, Nombre VARCHAR(30), Apellido VARCHAR(50))
+#CREATE TABLE Estudiantes (ID INT, Nombre, Apellido )
