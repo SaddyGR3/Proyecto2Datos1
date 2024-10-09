@@ -7,18 +7,33 @@ namespace QueryProcessor.Operations
     {
         public OperationStatus Execute(string sentence)
         {
-            // Ejemplo: "DELETE FROM tableName WHERE ID = 1;"
-            var whereClause = sentence.Split("WHERE")[1]?.Trim(' ', ';');
-            if (string.IsNullOrEmpty(whereClause))
+            // Ejemplo de sentencia: "DELETE FROM tableName WHERE ID = 1;"
+
+            var tableName = sentence.Split("FROM")[1].Split("WHERE")[0].Trim();
+            if (string.IsNullOrEmpty(tableName))
             {
+                Console.WriteLine("Error: No se encontró el nombre de la tabla.");
                 return OperationStatus.Error;
             }
 
-            // Extraemos la condición ID = X
-            var id = int.Parse(whereClause.Split('=')[1].Trim());
+            // Extraer la condición (ID = X)
+            var whereClause = sentence.Split("WHERE")[1]?.Trim(' ', ';');
+            if (string.IsNullOrEmpty(whereClause))
+            {
+                Console.WriteLine("Error: No se encontró la condición para eliminar.");
+                return OperationStatus.Error;
+            }
 
-            // Llamamos al Store Data Manager para realizar el borrado
-            return Store.GetInstance().Delete(id);
+            // Extraemos el ID de la condición
+            var idString = whereClause.Split('=')[1].Trim();
+            if (!int.TryParse(idString, out int id))
+            {
+                Console.WriteLine("Error: El ID especificado no es válido.");
+                return OperationStatus.Error;
+            }
+
+            // Llamar al Store Data Manager para realizar el borrado
+            return Store.GetInstance().DeleteFromTable(tableName, id);
         }
     }
 }

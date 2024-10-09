@@ -40,11 +40,11 @@ namespace QueryProcessor.Operations
                 return OperationStatus.Error;
             }
 
-            var comida = values[1].Trim(' ', '\'');
-            var dia = values[2].Trim(' ', '\'');
+            var c1 = values[1].Trim(' ', '\''); //c1 es columna 1
+            var c2 = values[2].Trim(' ', '\''); //c2 es columna 2
 
             // Llamar al Store Data Manager para insertar en la tabla especificada
-            return Store.GetInstance().InsertIntoTable(tableName, id, comida, dia);
+            return Store.GetInstance().InsertIntoTable(tableName, id, c1, c2);
         }
     }
 }

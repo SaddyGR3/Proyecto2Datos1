@@ -75,7 +75,7 @@ namespace StoreDataManager
 
 
         // Método para insertar un nuevo registro
-        public OperationStatus InsertIntoTable(string tableName, int id, string comida, string dia)
+        public OperationStatus InsertIntoTable(string tableName, int id, string c1, string c2)
         {
             try
             {
@@ -90,7 +90,7 @@ namespace StoreDataManager
                 }
 
                 // Formatear el registro como una línea de texto
-                string record = $"{id},{comida},{dia}";
+                string record = $"{id},{c1},{c2}";
 
                 // Insertar el registro en el archivo de texto
                 using (StreamWriter writer = new StreamWriter(tableFilePath, append: true))
@@ -152,47 +152,62 @@ namespace StoreDataManager
 
 
         // Método para eliminar un registro basado en el ID
-        public OperationStatus Delete(int id)
+        public OperationStatus DeleteFromTable(string tableName, int id)
         {
             try
             {
-                var tempFile = Path.GetTempFileName();
-                var found = false;
+                // Generar la ruta del archivo correspondiente a la tabla
+                string tableFilePath = $@"C:\TinySql\Data\{tableName}.txt";
 
-                using (var reader = new StreamReader(DatabaseFilePath))
+                // Verificar si la tabla existe (archivo)
+                if (!File.Exists(tableFilePath))
+                {
+                    Console.WriteLine($"Error: La tabla {tableName} no existe.");
+                    return OperationStatus.Error;  // Retorna Error si la tabla no existe
+                }
+
+                var tempFile = Path.GetTempFileName();
+                bool found = false;
+
+                // Leer el archivo y escribir en un archivo temporal
+                using (var reader = new StreamReader(tableFilePath))
                 using (var writer = new StreamWriter(tempFile))
                 {
                     string? line;
                     while ((line = reader.ReadLine()) != null)
                     {
                         var parts = line.Split(',');
-                        if (parts.Length != 3) continue;
 
-                        int recordId = int.Parse(parts[0].Trim());
-
-                        // Si el ID no coincide, copiamos la línea al archivo temporal
-                        if (recordId != id)
+                        if (parts.Length < 1)
                         {
-                            writer.WriteLine(line);
+                            writer.WriteLine(line); // Escribir líneas vacías
+                            continue;
+                        }
+
+                        // Suponemos que el primer elemento es el ID
+                        if (int.TryParse(parts[0].Trim(), out int recordId) && recordId == id)
+                        {
+                            found = true; // Marcamos que encontramos el ID
                         }
                         else
                         {
-                            found = true;
+                            writer.WriteLine(line); // Escribir la línea si no coincide con el ID
                         }
                     }
                 }
 
-                // Reemplazamos el archivo original por el archivo temporal
-                File.Delete(DatabaseFilePath);
-                File.Move(tempFile, DatabaseFilePath);
+                // Reemplazar el archivo original por el temporal
+                File.Delete(tableFilePath);
+                File.Move(tempFile, tableFilePath);
 
-                return found ? OperationStatus.Success : OperationStatus.Error;
+                return found ? OperationStatus.Success : OperationStatus.Error; // Retorna éxito si se eliminó un registro
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error al eliminar: {ex.Message}");
-                return OperationStatus.Error;
+                Console.WriteLine($"Error al eliminar el registro: {ex.Message}");
+                return OperationStatus.Error;  // Retorna Error si ocurre una excepción
             }
         }
+
     }
 }
