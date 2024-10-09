@@ -1,10 +1,5 @@
 ﻿using Entities;
 using StoreDataManager;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace QueryProcessor.Operations
 {
@@ -12,26 +7,45 @@ namespace QueryProcessor.Operations
     {
         public OperationStatus Execute(string sentence)
         {
-            // Aquí se espera que la sentencia sea algo como "INSERT INTO tableName VALUES (1, 'Pizza', 'Lunes')"
+            // Ejemplo de sentencia: "INSERT INTO Estudiantes VALUES (1, 'Pizza', 'Lunes');"
+
+            // Extraer el nombre de la tabla entre "INSERT INTO" y "VALUES"
+            var tableName = sentence.Split("INTO")[1].Split("VALUES")[0]?.Trim();
+            if (string.IsNullOrEmpty(tableName))
+            {
+                Console.WriteLine("Error: No se encontró el nombre de la tabla.");
+                return OperationStatus.Error;
+            }
+
+            // Extraer la sección de valores (todo lo que está entre los paréntesis)
             var valuesSection = sentence.Split("VALUES")[1]?.Trim(' ', ';', '(', ')');
             if (string.IsNullOrEmpty(valuesSection))
             {
+                Console.WriteLine("Error: No se encontraron los valores.");
                 return OperationStatus.Error;
             }
 
             var values = valuesSection.Split(',');
             if (values.Length != 3)
             {
-                return OperationStatus.Error; // Se esperan 3 valores (ID, Comida, Día)
+                Console.WriteLine("Error: Se esperan 3 valores (ID, Comida, Día).");
+                return OperationStatus.Error; // Se esperan 3 valores
             }
 
-            // Limpiamos los valores
-            var id = int.Parse(values[0].Trim());
+            // Limpiar los valores
+            int id;
+            if (!int.TryParse(values[0].Trim(), out id))
+            {
+                Console.WriteLine("Error: El ID debe ser un número.");
+                return OperationStatus.Error;
+            }
+
             var comida = values[1].Trim(' ', '\'');
             var dia = values[2].Trim(' ', '\'');
 
-            // Llamamos al Store Data Manager para realizar la inserción
-            return Store.GetInstance().Insert(id, comida, dia);
+            // Llamar al Store Data Manager para insertar en la tabla especificada
+            return Store.GetInstance().InsertIntoTable(tableName, id, comida, dia);
         }
     }
 }
+

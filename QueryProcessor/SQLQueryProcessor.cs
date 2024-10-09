@@ -9,23 +9,24 @@ namespace QueryProcessor
     {
         public static (OperationStatus, List<string>) Execute(string sentence)
         {
-            //create table
+            // CREATE TABLE
             if (sentence.StartsWith("CREATE TABLE", StringComparison.OrdinalIgnoreCase))
             {
                 var status = new CreateTable().Execute(sentence);  // Ejecuta la sentencia CREATE TABLE
                 return (status, null);  // Solo devuelve el estado para CREATE TABLE
             }
+
             // INSERT
             if (sentence.StartsWith("INSERT", StringComparison.OrdinalIgnoreCase))
             {
-                var status = new Insert().Execute(sentence);
+                var status = new Insert().Execute(sentence);  // Cambia esto si el método se renombró
                 return (status, null);  // Solo devuelve el estado para INSERT
             }
 
             // DELETE
             if (sentence.StartsWith("DELETE", StringComparison.OrdinalIgnoreCase))
             {
-                var status = new Delete().Execute(sentence);
+                var status = new Delete().Execute(sentence);  // Ejecuta la sentencia DELETE
                 return (status, null);  // Solo devuelve el estado para DELETE
             }
 
@@ -36,7 +37,7 @@ namespace QueryProcessor
             }
 
             // Si no se reconoce la sentencia
-            throw new UnknownSQLSentenceException();
+            throw new UnknownSQLSentenceException();  // Excepción para sentencias desconocidas
         }
     }
 }

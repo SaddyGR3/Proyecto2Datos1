@@ -75,27 +75,41 @@ namespace StoreDataManager
 
 
         // Método para insertar un nuevo registro
-        public OperationStatus Insert(int id, string comida, string dia)
+        public OperationStatus InsertIntoTable(string tableName, int id, string comida, string dia)
         {
             try
             {
-                // Formateamos el registro como una línea de texto
+                // Generar la ruta del archivo correspondiente a la tabla
+                string tableFilePath = $@"C:\TinySql\Data\{tableName}.txt";
+
+                // Verificar si la tabla existe (archivo)
+                if (!File.Exists(tableFilePath))
+                {
+                    Console.WriteLine($"Error: La tabla {tableName} no existe.");
+                    return OperationStatus.Error;  // Retorna Error si la tabla no existe
+                }
+
+                // Formatear el registro como una línea de texto
                 string record = $"{id},{comida},{dia}";
 
-                // Insertamos el registro en el archivo de texto
-                using (StreamWriter writer = new StreamWriter(DatabaseFilePath, append: true))
+                // Insertar el registro en el archivo de texto
+                using (StreamWriter writer = new StreamWriter(tableFilePath, append: true))
                 {
                     writer.WriteLine(record);
                 }
 
-                return OperationStatus.Success;
+                Console.WriteLine($"Registro insertado correctamente en {tableName}.");
+                return OperationStatus.Success;  // Retorna éxito si la inserción fue correcta
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error al insertar: {ex.Message}");
-                return OperationStatus.Error;
+                return OperationStatus.Error;  // Retorna Error si ocurre una excepción
             }
         }
+
+
+
 
         // Método para seleccionar registros, basado en un ID opcional
         public (OperationStatus, List<string>) Select(int? id = null)
