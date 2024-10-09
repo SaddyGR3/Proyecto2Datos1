@@ -1,35 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
+﻿using Entities;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
-using Entities;
 
 namespace StoreDataManager
 {
-
-    public class ColumnDefinition
-    {
-        public string Name { get; set; }
-        public string Type { get; set; }
-
-        public ColumnDefinition(string name, string type)
-        {
-            this.Name = name;
-            this.Type = type;
-        }
-    }
-
     public sealed class Store
     {
         private static Store? instance = null;
         private static readonly object _lock = new object();
 
-        private const string DatabaseBasePath = @"C:\TinySql\";
-        private const string DataPath = $@"{DatabaseBasePath}\Data";
-        private const string SystemCatalogPath = $@"{DataPath}\SystemCatalog";
-        private const string SystemDatabasesFile = $@"{SystemCatalogPath}\SystemDatabases.table";
-        private const string SystemTablesFile = $@"{SystemCatalogPath}\SystemTables.table";
+        // Ruta de la base de datos que será un archivo .txt
+        private const string DatabaseFilePath = @"C:\TinySql\Data\comidas_db.txt";
 
+        // Singleton para asegurar que haya una única instancia de Store
         public static Store GetInstance()
         {
             lock (_lock)
@@ -42,110 +25,120 @@ namespace StoreDataManager
             }
         }
 
+        // Constructor que asegura la inicialización de la "base de datos"
         public Store()
         {
-            this.InitializeSystemCatalog();
+            InitializeDatabase();
         }
 
-        private void InitializeSystemCatalog()
+        // Aseguramos que el archivo de la base de datos exista
+        private void InitializeDatabase()
         {
-            Directory.CreateDirectory(SystemCatalogPath);
-        }
-
-        public OperationStatus CreateDatabase(string databaseName)
-        {
-            var databasePath = $@"{DataPath}\{databaseName}";
-            if (!Directory.Exists(databasePath))
+            if (!File.Exists(DatabaseFilePath))
             {
-                Directory.CreateDirectory(databasePath);
-
-                // Actualiza SystemCatalog
-                using (FileStream stream = File.Open(SystemDatabasesFile, FileMode.Append))
-                using (BinaryWriter writer = new BinaryWriter(stream))
-                {
-                    writer.Write(databaseName);
-                }
-
-                return OperationStatus.Success;
+                File.Create(DatabaseFilePath).Close();
             }
-            return OperationStatus.DatabaseAlreadyExists;
         }
-        public OperationStatus InsertIntoTable(string tableName, Dictionary<string, object> rowData) //Este metodo inserta una fila en una tabla especifica.
+
+        // Método para insertar un nuevo registro
+        public OperationStatus Insert(int id, string comida, string dia)
         {
-            var tablePath = $@"{DataPath}\TESTDB\{tableName}.Table"; //falta agregar la base de datos en la que se va a insertar la fila.
-
-            if (!File.Exists(tablePath))//Si la tabla no existe, se devuelve un error.
-            {
-                return OperationStatus.Error;
-            }
-
             try
             {
-                using (FileStream stream = File.Open(tablePath, FileMode.Append)) //Se abre el archivo binario de la tabla en modo Append.
-                using (BinaryWriter writer = new BinaryWriter(stream))//Se crea un BinaryWriter para escribir en el archivo.
+                // Formateamos el registro como una línea de texto
+                string record = $"{id},{comida},{dia}";
+
+                // Insertamos el registro en el archivo de texto
+                using (StreamWriter writer = new StreamWriter(DatabaseFilePath, append: true))
                 {
-                    //Escribe cada columna de la fila en el archivo.
-                    foreach (var column in rowData)
-                    {
-                        if (column.Value is int)
-                        {
-                            writer.Write((int)column.Value);
-                        }
-                        else if (column.Value is string)
-                        {
-                            string value = (string)column.Value;
-
-                            if (column.Key == "Nombre")
-                            {
-                                value = value.PadRight(30); //Se asegura de que el string tenga 30 caracteres.
-                            }
-                            else if (column.Key == "Apellidos")
-                            {
-                                value = value.PadRight(50); //Se asegura de que el string tenga 50 caracteres.
-                            }
-
-                            writer.Write(value);
-                        }
-                    }
+                    writer.WriteLine(record);
                 }
+
                 return OperationStatus.Success;
             }
             catch (Exception ex)
             {
-                // Manejar el error y devolver el estado de error
+                Console.WriteLine($"Error al insertar: {ex.Message}");
                 return OperationStatus.Error;
             }
         }
 
-        public OperationStatus CreateTable(string databaseName, string tableName, List<ColumnDefinition> columns)
+        // Método para seleccionar registros, basado en un ID opcional
+        public (OperationStatus, List<string>) Select(int? id = null)
         {
-            var databasePath = $@"{DataPath}\{databaseName}";
-            if (!Directory.Exists(databasePath))
+            try
             {
-                return OperationStatus.DatabaseNotFound;
-            }
-
-            var tablePath = $@"{databasePath}\{tableName}.Table";
-            using (FileStream stream = File.Open(tablePath, FileMode.OpenOrCreate))
-            using (BinaryWriter writer = new BinaryWriter(stream))
-            {
-                // Escribir el esquema de la tabla en el archivo
-                foreach (var column in columns)
+                var results = new List<string>();
+                using (StreamReader reader = new StreamReader(DatabaseFilePath))
                 {
-                    writer.Write(column.Name);
-                    writer.Write(column.Type);
+                    string? line;
+                    while ((line = reader.ReadLine()) != null)
+                    {
+                        // Cada línea es un registro en formato "id,comida,dia"
+                        var parts = line.Split(',');
+                        if (parts.Length != 3) continue;
+
+                        int recordId = int.Parse(parts[0].Trim());
+
+                        // Si se especifica un ID, solo seleccionamos el registro con ese ID
+                        if (id == null || recordId == id)
+                        {
+                            results.Add(line);
+                        }
+                    }
                 }
-            }
 
-            // Actualiza el SystemCatalog
-            using (FileStream stream = File.Open(SystemTablesFile, FileMode.Append))
-            using (BinaryWriter writer = new BinaryWriter(stream))
+                return (OperationStatus.Success, results);
+            }
+            catch (Exception ex)
             {
-                writer.Write(databaseName);
-                writer.Write(tableName);
+                Console.WriteLine($"Error al seleccionar: {ex.Message}");
+                return (OperationStatus.Error, null);
             }
+        }
 
-            return OperationStatus.Success;
+        // Método para eliminar un registro basado en el ID
+        public OperationStatus Delete(int id)
+        {
+            try
+            {
+                var tempFile = Path.GetTempFileName();
+                var found = false;
+
+                using (var reader = new StreamReader(DatabaseFilePath))
+                using (var writer = new StreamWriter(tempFile))
+                {
+                    string? line;
+                    while ((line = reader.ReadLine()) != null)
+                    {
+                        var parts = line.Split(',');
+                        if (parts.Length != 3) continue;
+
+                        int recordId = int.Parse(parts[0].Trim());
+
+                        // Si el ID no coincide, copiamos la línea al archivo temporal
+                        if (recordId != id)
+                        {
+                            writer.WriteLine(line);
+                        }
+                        else
+                        {
+                            found = true;
+                        }
+                    }
+                }
+
+                // Reemplazamos el archivo original por el archivo temporal
+                File.Delete(DatabaseFilePath);
+                File.Move(tempFile, DatabaseFilePath);
+
+                return found ? OperationStatus.Success : OperationStatus.Error;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al eliminar: {ex.Message}");
+                return OperationStatus.Error;
+            }
         }
     }
 }

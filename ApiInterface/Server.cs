@@ -6,6 +6,9 @@ using System.Text.Json;
 using ApiInterface.Exceptions;
 using ApiInterface.Processors;
 using ApiInterface.Models;
+using QueryProcessor.Exceptions;
+using QueryProcessor;
+using Entities;
 
 namespace ApiInterface
 {
@@ -19,7 +22,7 @@ namespace ApiInterface
             using Socket listener = new(serverEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
             listener.Bind(serverEndPoint);
             listener.Listen(supportedParallelConnections);
-            Console.WriteLine($"Server ready at {serverEndPoint.ToString()}");
+            Console.WriteLine($"Server ready at {serverEndPoint}");
 
             while (true)
             {
@@ -48,35 +51,79 @@ namespace ApiInterface
             using (NetworkStream stream = new NetworkStream(handler))
             using (StreamReader reader = new StreamReader(stream))
             {
-                return reader.ReadLine() ?? String.Empty;
+                return reader.ReadLine() ?? string.Empty;
             }
         }
 
         private static Request ConvertToRequestObject(string rawMessage)
         {
-            return JsonSerializer.Deserialize<Request>(rawMessage) ?? throw new InvalidRequestException();
+            try
+            {
+                // Deserialize the raw JSON message into a Request object
+                return JsonSerializer.Deserialize<Request>(rawMessage) ?? throw new InvalidRequestException();
+            }
+            catch (JsonException)
+            {
+                throw new InvalidRequestException();
+            }
         }
-
         private static Response ProcessRequest(Request requestObject)
         {
-            var processor = ProcessorFactory.Create(requestObject);
-            return processor.Process();
+            try
+            {
+                var sqlSentence = requestObject.RequestBody;
+                var (status, resultList) = SQLQueryProcessor.Execute(sqlSentence);
+
+                return new Response
+                {
+                    Status = status,
+                    Request = requestObject,  // Inicializamos correctamente 'Request'
+                    ResponseBody = status == OperationStatus.Success
+                        ? (resultList != null ? string.Join(", ", resultList) : "Operation successful")
+                        : "Operation failed"
+                };
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error processing request: {ex.Message}");
+                return new Response
+                {
+                    Status = OperationStatus.Error,
+                    Request = requestObject,  // Asegúrate de pasar el objeto 'requestObject', aunque sea el que falló
+                    ResponseBody = "Error processing the request."
+                };
+            }
         }
+
 
         private static void SendResponse(Response response, Socket handler)
         {
             using (NetworkStream stream = new NetworkStream(handler))
             using (StreamWriter writer = new StreamWriter(stream))
             {
+                // Serializamos el objeto Response a JSON y lo enviamos
                 writer.WriteLine(JsonSerializer.Serialize(response));
+                writer.Flush();  // Asegurarse de que todo el contenido se envíe
             }
         }
 
-        private static Task SendErrorResponse(string reason, Socket handler)
-        {
-            throw new NotImplementedException();
-        }
 
-        
+        private static async Task SendErrorResponse(string reason, Socket handler)
+        {
+            var errorResponse = new Response
+            {
+                Status = OperationStatus.Error,
+                Request = null!,  // No hay solicitud válida en este caso
+                ResponseBody = reason,
+                Data = null
+            };
+
+            using (NetworkStream stream = new NetworkStream(handler))
+            using (StreamWriter writer = new StreamWriter(stream))
+            {
+                await writer.WriteLineAsync(JsonSerializer.Serialize(errorResponse));
+                await writer.FlushAsync();
+            }
+        }
     }
 }

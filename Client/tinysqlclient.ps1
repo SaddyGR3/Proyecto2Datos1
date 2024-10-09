@@ -21,54 +21,108 @@ function Send-Message {
         $writer.WriteLine($message)
     }
     finally {
-        $writer.Close()//
+        $writer.Close()
         $stream.Close()
     }
 }
 
-function Receive-Message {
-    param (
-        [System.Net.Sockets.Socket]$client
-    )
-    $stream = New-Object System.Net.Sockets.NetworkStream($client)
-    $reader = New-Object System.IO.StreamReader($stream)
-    try {
-        $line = $reader.ReadLine()
-        if ($null -ne $line) {
-            return $line
-        } else {
-            return ""
-        }
-    }
-    finally {
-        $reader.Close()
-        $stream.Close()
-    }
-}
+
 function Send-SQLCommand {
     param (
         [string]$command
     )
     $client = New-Object System.Net.Sockets.Socket($ipEndPoint.AddressFamily, [System.Net.Sockets.SocketType]::Stream, [System.Net.Sockets.ProtocolType]::Tcp)
     $client.Connect($ipEndPoint)
+    
+    # Verifica el tipo de comando para el RequestType
+    $requestType = if ($command -match "^INSERT") { 1 }
+    elseif ($command -match "^DELETE") { 2 }
+    elseif ($command -match "^SELECT") { 3 }
+    else { 0 }  # 0 for invalid/unknown commands
+
     $requestObject = [PSCustomObject]@{
-        RequestType = 0;
+        RequestType = $requestType;
         RequestBody = $command
     }
-    Write-Host -ForegroundColor Green "Sending command: $command"
 
+    Write-Host -ForegroundColor Green "Sending command: $command"
+    
     $jsonMessage = ConvertTo-Json -InputObject $requestObject -Compress
     Send-Message -client $client -message $jsonMessage
     $response = Receive-Message -client $client
 
-    Write-Host -ForegroundColor Green "Response received: $response"
-    
+    # Convertimos la respuesta JSON en un objeto PowerShell
     $responseObject = ConvertFrom-Json -InputObject $response
-    Write-Output $responseObject
+    
+    # Mostrar solo información relevante (éxito o fallo)
+    if ($responseObject.Status -eq 0) {
+        Write-Host -ForegroundColor Green "Operation successful: $($responseObject.ResponseBody)"
+    } else {
+        Write-Host -ForegroundColor Red "Operation failed: $($responseObject.ResponseBody)"
+    }
+
+    # Si es un SELECT, mostrar los datos en formato tabla
+    if ($responseObject.Request.RequestType -eq 3 -and $responseObject.ResponseBody -ne $null) {
+        Write-Host -ForegroundColor Yellow "Query Result:"
+        
+        # Convertir la cadena CSV en una lista de objetos para formatear como tabla
+        $rows = $responseObject.ResponseBody -split ","
+        $data = @()
+        
+        for ($i = 0; $i -lt $rows.Length; $i += 3) {
+            $data += [PSCustomObject]@{
+                ID = $rows[$i]
+                Comida = $rows[$i + 1]
+                Dia = $rows[$i + 2]
+            }
+        }
+        
+        # Mostrar la tabla
+        $data | Format-Table -AutoSize
+    }
+
+    # Si hay datos adicionales (aunque no sea un SELECT), mostrarlos también
+    if ($responseObject.Data -ne $null) {
+        Write-Host -ForegroundColor Yellow "Additional Data: $($responseObject.Data)"
+    }
+
     $client.Shutdown([System.Net.Sockets.SocketShutdown]::Both)
     $client.Close()
 }
 
-# This is an example, should not be called here
-Send-SQLCommand -command "CREATE TABLE ESTUDIANTE"
-Send-SQlCommand -command "SELECT * FROM ESTUDIANTE"
+
+function Receive-Message {
+    param (
+        [Parameter(Mandatory = $true)]
+        [System.Net.Sockets.Socket]$client
+    )
+
+    $stream = New-Object System.Net.Sockets.NetworkStream($client)
+    $reader = New-Object System.IO.StreamReader($stream)
+    
+    try {
+        $response = $reader.ReadLine()  # Leer la respuesta del servidor
+        return $response
+    }
+    finally {
+        $reader.Close()
+        $stream.Close()
+    }
+}
+
+
+# Solicitar consulta SQL del usuario de forma interactiva
+while ($true) {
+    $command = Read-Host "Introduce una consulta SQL (o escribe 'salir' para terminar)"
+    
+    if ($command -eq "salir") {
+        break
+    }
+
+    Send-SQLCommand -command $command
+}
+
+# Ejemplos de uso
+#INSERT INTO comidas (ID, Comida, Día) VALUES (3,"Pescado", "Martes")
+#SELECT * FROM comidas
+#DELETE FROM comidas WHERE ID = 1

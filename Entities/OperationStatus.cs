@@ -2,11 +2,11 @@
 {
     public enum OperationStatus
     {
-        Warning,
         Success,
-        DatabaseAlreadyExists,
-        DatabaseNotFound,
-        TableAlreadyExists,
-        Error
+        Error,
+        Warning,
+        Status,
+        Info,
+        Fatal
     }
 }

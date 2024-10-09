@@ -10,10 +10,19 @@ namespace QueryProcessor.Operations
 {
     internal class Select
     {
-        public OperationStatus Execute()
+        public (OperationStatus, List<string>) Execute(string sentence)
         {
-            // This is only doing the query but not returning results.
-            return Store.GetInstance().Select();
+            // Ejemplo: "SELECT * FROM tableName WHERE ID = 1;"
+            var whereClause = sentence.Contains("WHERE") ? sentence.Split("WHERE")[1].Trim(' ', ';') : null;
+            int? id = null;
+
+            if (!string.IsNullOrEmpty(whereClause))
+            {
+                id = int.Parse(whereClause.Split('=')[1].Trim());
+            }
+
+            // Llamamos al Store para hacer la búsqueda
+            return Store.GetInstance().Select(id);
         }
     }
 }

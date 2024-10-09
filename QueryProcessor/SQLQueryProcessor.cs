@@ -1,36 +1,36 @@
 ﻿using Entities;
 using QueryProcessor.Exceptions;
 using QueryProcessor.Operations;
-using QueryProcessor.Parser;
 using StoreDataManager;
-
 
 namespace QueryProcessor
 {
     public class SQLQueryProcessor
     {
-        public static OperationStatus Execute(string sentence)
+        public static (OperationStatus, List<string>) Execute(string sentence)
         {
-            // Usamos el parser para descomponer la sentencia SQL
-            ParsedQuery parsedQuery = SQLParser.Parse(sentence);
-
-            // Dependiendo del tipo de comando, llamamos a la operación correspondiente
-            switch (parsedQuery.CommandType)
+            // INSERT
+            if (sentence.StartsWith("INSERT", StringComparison.OrdinalIgnoreCase))
             {
-                case CommandType.CreateTable:
-                    return new CreateTable().Execute(parsedQuery);
-
-                case CommandType.Insert:
-                    return new Insert().Execute(parsedQuery);
-
-                case CommandType.Select:
-                    return new Select().Execute(parsedQuery);
-
-                default:
-                    throw new UnknownSQLSentenceException(sentence);
+                var status = new Insert().Execute(sentence);
+                return (status, null);  // Solo devuelve el estado para INSERT
             }
+
+            // DELETE
+            if (sentence.StartsWith("DELETE", StringComparison.OrdinalIgnoreCase))
+            {
+                var status = new Delete().Execute(sentence);
+                return (status, null);  // Solo devuelve el estado para DELETE
+            }
+
+            // SELECT
+            if (sentence.StartsWith("SELECT", StringComparison.OrdinalIgnoreCase))
+            {
+                return new Select().Execute(sentence);  // Devuelve el estado y los resultados para SELECT
+            }
+
+            // Si no se reconoce la sentencia
+            throw new UnknownSQLSentenceException();
         }
     }
 }
-
-//Prueba

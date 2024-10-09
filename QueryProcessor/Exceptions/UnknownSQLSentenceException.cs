@@ -8,10 +8,5 @@ namespace QueryProcessor.Exceptions
 {
     public class UnknownSQLSentenceException : Exception
     {
-        public UnknownSQLSentenceException(string sentence)
-            : base($"Sentencia SQL Desconocida: {sentence}")
-        {
-        }
     }
-
 }
