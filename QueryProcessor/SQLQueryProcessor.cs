@@ -9,6 +9,12 @@ namespace QueryProcessor
     {
         public static (OperationStatus, List<string>) Execute(string sentence)
         {
+            //create table
+            if (sentence.StartsWith("CREATE TABLE", StringComparison.OrdinalIgnoreCase))
+            {
+                var status = new CreateTable().Execute(sentence);  // Ejecuta la sentencia CREATE TABLE
+                return (status, null);  // Solo devuelve el estado para CREATE TABLE
+            }
             // INSERT
             if (sentence.StartsWith("INSERT", StringComparison.OrdinalIgnoreCase))
             {

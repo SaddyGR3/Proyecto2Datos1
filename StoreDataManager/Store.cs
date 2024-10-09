@@ -39,6 +39,40 @@ namespace StoreDataManager
                 File.Create(DatabaseFilePath).Close();
             }
         }
+        public OperationStatus CreateTable(string tableName, List<string> columns)
+        {
+            // Generar la ruta del archivo que representará la tabla.
+            string tableFilePath = $@"C:\TinySql\Data\{tableName}.txt";
+
+            try
+            {
+                // Verificar si el archivo ya existe (la "tabla" ya existe).
+                if (File.Exists(tableFilePath))
+                {
+                    Console.WriteLine($"La tabla {tableName} ya existe.");
+                    return OperationStatus.TableAlreadyExists; // Estado para tabla existente
+                }
+
+                // Crear el archivo de la tabla y escribir solo los nombres de las columnas en la primera línea
+                using (StreamWriter writer = new StreamWriter(tableFilePath))
+                {
+                    // Escribir los nombres de las columnas en la primera línea (sin tipos de datos)
+                    writer.WriteLine(string.Join(",", columns));
+                }
+
+                Console.WriteLine($"Tabla {tableName} creada exitosamente.");
+                return OperationStatus.Success; // Estado para creación exitosa
+            }
+            catch (Exception ex)
+            {
+                // Capturar errores en caso de fallo
+                Console.WriteLine($"Error al crear la tabla: {ex.Message}");
+                return OperationStatus.Error; // Estado para errores
+            }
+        }
+
+
+
 
         // Método para insertar un nuevo registro
         public OperationStatus Insert(int id, string comida, string dia)

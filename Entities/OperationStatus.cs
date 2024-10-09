@@ -7,6 +7,7 @@
         Warning,
         Status,
         Info,
-        Fatal
+        Fatal,
+        TableAlreadyExists
     }
 }
