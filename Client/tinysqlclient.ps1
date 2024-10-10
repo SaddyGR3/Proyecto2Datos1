@@ -126,4 +126,4 @@ while ($true) {
 #INSERT INTO Estudiantes VALUES (1, 'Pizza', 'Lunes');
 #SELECT * FROM comidas
 #DELETE FROM comidas WHERE ID = 1
-#CREATE TABLE Estudiantes (ID INT, Nombre, Apellido )
+#CREATE TABLE Estudiantes (ID, Nombre, Apellido )
