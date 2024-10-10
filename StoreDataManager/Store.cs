@@ -208,60 +208,6 @@ namespace StoreDataManager
                 return OperationStatus.Error;  // Retorna Error si ocurre una excepción
             }
         }
-        public OperationStatus DropTable(string tableName)
-        {
-            try
-            {
-                // Generar la ruta del archivo correspondiente a la tabla
-                string tableFilePath = $@"C:\TinySql\Data\{tableName}.txt";
-
-                // Mensaje de depuración para verificar el archivo
-                Console.WriteLine($"Intentando eliminar la tabla: {tableName}");
-                Console.WriteLine($"Ruta del archivo: {tableFilePath}");
-
-                // Verificar si el archivo existe
-                if (!File.Exists(tableFilePath))
-                {
-                    Console.WriteLine($"Error: La tabla {tableName} no existe.");
-                    return OperationStatus.Error;  // Retorna Error si la tabla no existe
-                }
-
-                // Verificar si el archivo está vacío
-                FileInfo fileInfo = new FileInfo(tableFilePath);
-                if (fileInfo.Length > 0)
-                {
-                    Console.WriteLine($"Error: La tabla {tableName} no está vacía y no puede ser eliminada.");
-                    return OperationStatus.Error;  // Retorna Error si la tabla no está vacía
-                }
-
-                // Intentar eliminar el archivo
-                try
-                {
-                    File.Delete(tableFilePath);
-                    Console.WriteLine($"Tabla {tableName} eliminada exitosamente.");
-                    return OperationStatus.Success;  // Retorna éxito si la eliminación fue correcta
-                }
-                catch (IOException ioEx)
-                {
-                    Console.WriteLine($"Error de IO al eliminar la tabla: {ioEx.Message}");
-                    return OperationStatus.Error;  // Retorna Error si ocurre una excepción de IO
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Error inesperado al eliminar la tabla: {ex.Message}");
-                    return OperationStatus.Error;  // Retorna Error si ocurre cualquier otra excepción
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error al procesar la tabla: {ex.Message}");
-                return OperationStatus.Error;  // Retorna Error si ocurre una excepción
-            }
-        }
-
-
-
-
 
     }
 }

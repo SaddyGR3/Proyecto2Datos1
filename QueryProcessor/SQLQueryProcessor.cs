@@ -35,11 +35,6 @@ namespace QueryProcessor
             {
                 return new Select().Execute(sentence);  // Devuelve el estado y los resultados para SELECT
             }
-            if (sentence.StartsWith("DROP TABLE", StringComparison.OrdinalIgnoreCase))
-            {
-                var status = new DropTable().Execute(sentence);
-                return (status, null);
-            }
 
             // Si no se reconoce la sentencia
             Console.WriteLine("Error: Sentencia SQL no reconocida.");
