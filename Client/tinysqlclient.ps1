@@ -133,7 +133,7 @@ while ($true) {
 #Ejemplos de uso 2
 #CREATE DATABASE Universidad;
 #SET DATABASE Universidad;
-#CREATE TABLE Estudiante (ID INT, Nombre VARCHAR(30), Apellido1 VARCHAR(30), Apellido2 VARCHAR(30), FechaNacimiento DATETIME);
+#CREATE TABLE Estudiante (ID INT, Nombre VARCHAR(30), Apellido1 VARCHAR(30), Apellido2 VARCHAR(30), FechaNacimiento DATETIME);a
 #INSERT INTO Estudiante VALUES (1, "Isaac", "Ramirez", "Herrera", "2000-01-01 01:02:00")
 #INSERT INTO Estudiante VALUES (2, "Juan", "Perez", "Gonzalez", "2001-02-02 02:03:00")
 #INSERT INTO Estudiante VALUES (3, "Maria", "Gonzalez", "Hernandez", "2002-03-03 03:04:00")
