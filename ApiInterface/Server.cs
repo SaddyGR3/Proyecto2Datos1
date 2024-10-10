@@ -22,7 +22,7 @@ namespace ApiInterface
             using Socket listener = new(serverEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
             listener.Bind(serverEndPoint);
             listener.Listen(supportedParallelConnections);
-            Console.WriteLine($"Server ready at {serverEndPoint}");
+            Console.WriteLine($"Servidor listo en {serverEndPoint}");
 
             while (true)
             {

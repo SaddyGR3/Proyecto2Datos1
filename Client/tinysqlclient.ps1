@@ -44,22 +44,35 @@ function Send-SQLCommand {
         RequestBody = $command
     }
 
-    Write-Host -ForegroundColor Green "Sending command: $command"
+    Write-Host -ForegroundColor Green "Enviando Consulta: $command"
 
+    # Inicia el cronómetro
+    $startTime = Get-Date
+
+    # Envía el comando
     $jsonMessage = ConvertTo-Json -InputObject $requestObject -Compress
     Send-Message -client $client -message $jsonMessage
+
+    # Recibe la respuesta
     $response = Receive-Message -client $client
+
+    # Detén el cronómetro y calcula el tiempo
+    $endTime = Get-Date
+    $elapsedTime = $endTime - $startTime
 
     $responseObject = ConvertFrom-Json -InputObject $response
 
+    # Muestra el tiempo de ejecución del servidor
+    Write-Host -ForegroundColor Cyan "Tiempo que duro la ejecucion: $($elapsedTime.TotalSeconds) segundos"
+
     if ($responseObject.Status -eq 0) {
-        Write-Host -ForegroundColor Green "Operation successful: $($responseObject.ResponseBody)"
+        Write-Host -ForegroundColor Green "Operacion exitosa: $($responseObject.ResponseBody)"
     } else {
-        Write-Host -ForegroundColor Red "Operation failed: $($responseObject.ResponseBody)"
+        Write-Host -ForegroundColor Red "Operation fallida: $($responseObject.ResponseBody)"
     }
 
     if ($responseObject.Request.RequestType -eq 3 -and $responseObject.ResponseBody -ne $null) {
-        Write-Host -ForegroundColor Yellow "Query Result:"
+        Write-Host -ForegroundColor Yellow "Resultado del Query:"
 
         # Convertir la cadena CSV en una lista de objetos para formatear como tabla
         $rows = $responseObject.ResponseBody -split ","
@@ -84,7 +97,7 @@ function Send-SQLCommand {
     }
 
     if ($responseObject.Data -ne $null) {
-        Write-Host -ForegroundColor Yellow "Additional Data: $($responseObject.Data)"
+        Write-Host -ForegroundColor Yellow "Data Adicional: $($responseObject.Data)"
     }
 
     $client.Shutdown([System.Net.Sockets.SocketShutdown]::Both)
