@@ -12,6 +12,8 @@ namespace StoreDataManager
         // Ruta de la base de datos que será un archivo .txt
         private const string DatabaseFilePath = @"C:\TinySql\Data\comidas_db.txt";
 
+        // Ruta base para todas las bases de datos
+        private const string BaseDirectoryPath = @"C:\TinySql\Data\";
         // Singleton para asegurar que haya una única instancia de Store
         public static Store GetInstance()
         {
@@ -28,68 +30,92 @@ namespace StoreDataManager
         // Constructor que asegura la inicialización de la "base de datos"
         public Store()
         {
-            InitializeDatabase();
+            InitializeBaseDirectory();
         }
 
-        // Aseguramos que el archivo de la base de datos exista
-        private void InitializeDatabase()
+        // Aseguramos que el directorio base exista
+        private void InitializeBaseDirectory()
         {
-            if (!File.Exists(DatabaseFilePath))
+            if (!Directory.Exists(BaseDirectoryPath))
             {
-                File.Create(DatabaseFilePath).Close();
+                Directory.CreateDirectory(BaseDirectoryPath);
             }
         }
-        public OperationStatus CreateTable(string tableName, List<string> columns)
+        // Método para crear una base de datos (directorio)
+        public OperationStatus CreateDatabase(string databaseName)
         {
-            // Generar la ruta del archivo que representará la tabla.
-            string tableFilePath = $@"C:\TinySql\Data\{tableName}.txt";
-
             try
             {
-                // Verificar si el archivo ya existe (la "tabla" ya existe).
-                if (File.Exists(tableFilePath))
+                string databaseDirectoryPath = Path.Combine(BaseDirectoryPath, databaseName);
+
+                // Verificar si ya existe una base de datos con ese nombre
+                if (Directory.Exists(databaseDirectoryPath))
                 {
-                    Console.WriteLine($"La tabla {tableName} ya existe.");
-                    return OperationStatus.TableAlreadyExists; // Estado para tabla existente
+                    Console.WriteLine($"La base de datos '{databaseName}' ya existe.");
+                    return OperationStatus.DatabaseAlreadyExists;
                 }
 
-                // Crear el archivo de la tabla y escribir solo los nombres de las columnas en la primera línea
-                using (StreamWriter writer = new StreamWriter(tableFilePath))
-                {
-                    // Escribir los nombres de las columnas en la primera línea (sin tipos de datos)
-                    writer.WriteLine(string.Join(",", columns));
-                }
-
-                Console.WriteLine($"Tabla {tableName} creada exitosamente.");
-                return OperationStatus.Success; // Estado para creación exitosa
+                // Crear el directorio de la base de datos
+                Directory.CreateDirectory(databaseDirectoryPath);
+                Console.WriteLine($"Base de datos '{databaseName}' creada exitosamente.");
+                return OperationStatus.Success;
             }
             catch (Exception ex)
             {
-                // Capturar errores en caso de fallo
+                Console.WriteLine($"Error al crear la base de datos: {ex.Message}");
+                return OperationStatus.Error;
+            }
+        }
+
+        public OperationStatus CreateTable(string databaseName, string tableName, List<string> columns)
+        {
+            try
+            {
+                string databaseDirectoryPath = Path.Combine(BaseDirectoryPath, databaseName);
+
+                // Verificar si la base de datos existe
+                if (!Directory.Exists(databaseDirectoryPath))
+                {
+                    Console.WriteLine($"Error: La base de datos '{databaseName}' no existe.");
+                    return OperationStatus.DatabaseNotFound;
+                }
+
+                // Generar la ruta del archivo de la tabla dentro de la base de datos
+                string tableFilePath = Path.Combine(databaseDirectoryPath, $"{tableName}.txt");
+
+                // Verificar si el archivo ya existe (la tabla ya existe)
+                if (File.Exists(tableFilePath))
+                {
+                    Console.WriteLine($"La tabla {tableName} ya existe en la base de datos {databaseName}.");
+                    return OperationStatus.TableAlreadyExists;
+                }
+
+                // Crear el archivo de la tabla y escribir los nombres de las columnas
+                using (StreamWriter writer = new StreamWriter(tableFilePath))
+                {
+                    writer.WriteLine(string.Join(",", columns));
+                }
+
+                Console.WriteLine($"Tabla {tableName} creada exitosamente en la base de datos {databaseName}.");
+                return OperationStatus.Success;
+            }
+            catch (Exception ex)
+            {
                 Console.WriteLine($"Error al crear la tabla: {ex.Message}");
-                return OperationStatus.Error; // Estado para errores
+                return OperationStatus.Error;
             }
         }
 
 
 
-
-        // Método para insertar un nuevo registro
-        public OperationStatus InsertIntoTable(string tableName, int id, string c1, string c2)
+        // Método para insertar un nuevo registro en una tabla dentro de una base de datos
+        public OperationStatus InsertIntoTable(string databaseName, string tableName, int id, string c1, string c2)
         {
             try
             {
-                // Generar la ruta del archivo correspondiente a la tabla
-                string tableFilePath = $@"C:\TinySql\Data\{tableName}.txt";
+                string tableFilePath = GetTableFilePath(databaseName, tableName);
+                if (tableFilePath == null) return OperationStatus.TableNotFound;
 
-                // Verificar si la tabla existe (archivo)
-                if (!File.Exists(tableFilePath))
-                {
-                    Console.WriteLine($"Error: La tabla {tableName} no existe.");
-                    return OperationStatus.Error;  // Retorna Error si la tabla no existe
-                }
-
-                // Formatear el registro como una línea de texto
                 string record = $"{id},{c1},{c2}";
 
                 // Insertar el registro en el archivo de texto
@@ -98,78 +124,58 @@ namespace StoreDataManager
                     writer.WriteLine(record);
                 }
 
-                Console.WriteLine($"Registro insertado correctamente en {tableName}.");
-                return OperationStatus.Success;  // Retorna éxito si la inserción fue correcta
+                Console.WriteLine($"Registro insertado correctamente en la tabla {tableName} de la base de datos {databaseName}.");
+                return OperationStatus.Success;
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error al insertar: {ex.Message}");
-                return OperationStatus.Error;  // Retorna Error si ocurre una excepción
+                return OperationStatus.Error;
             }
         }
 
 
 
-
-        // Método para seleccionar registros, basado en un ID opcional
-        public (OperationStatus, List<string>) SelectFromTable(string tableName)
+        // Método para seleccionar todos los registros de una tabla
+        public (OperationStatus, List<string>) SelectFromTable(string databaseName, string tableName)
         {
             try
             {
-                // Generar la ruta del archivo correspondiente a la tabla
-                string tableFilePath = $@"C:\TinySql\Data\{tableName}.txt";
+                string tableFilePath = GetTableFilePath(databaseName, tableName);
+                if (tableFilePath == null) return (OperationStatus.TableNotFound, null);
 
-                // Verificar si la tabla existe (archivo)
-                if (!File.Exists(tableFilePath))
-                {
-                    Console.WriteLine($"Error: La tabla {tableName} no existe.");
-                    return (OperationStatus.Error, null);  // Retorna Error si la tabla no existe
-                }
-
-                // Lista para almacenar los registros
                 var records = new List<string>();
 
-                // Leer el archivo de la tabla
                 using (StreamReader reader = new StreamReader(tableFilePath))
                 {
                     string? line;
                     while ((line = reader.ReadLine()) != null)
                     {
-                        records.Add(line);  // Agregar cada línea al listado
+                        records.Add(line);
                     }
                 }
 
-                return (OperationStatus.Success, records);  // Retorna éxito y los registros leídos
+                return (OperationStatus.Success, records);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error al seleccionar desde la tabla: {ex.Message}");
-                return (OperationStatus.Error, null);  // Retorna Error si ocurre una excepción
+                Console.WriteLine($"Error al seleccionar registros: {ex.Message}");
+                return (OperationStatus.Error, null);
             }
         }
 
 
-
-
-        // Método para eliminar un registro basado en el ID
-        public OperationStatus DeleteFromTable(string tableName, int id)
+        // Método para eliminar un registro por ID
+        public OperationStatus DeleteFromTable(string databaseName, string tableName, int id)
         {
             try
             {
-                // Generar la ruta del archivo correspondiente a la tabla
-                string tableFilePath = $@"C:\TinySql\Data\{tableName}.txt";
-
-                // Verificar si la tabla existe (archivo)
-                if (!File.Exists(tableFilePath))
-                {
-                    Console.WriteLine($"Error: La tabla {tableName} no existe.");
-                    return OperationStatus.Error;  // Retorna Error si la tabla no existe
-                }
+                string tableFilePath = GetTableFilePath(databaseName, tableName);
+                if (tableFilePath == null) return OperationStatus.TableNotFound;
 
                 var tempFile = Path.GetTempFileName();
                 bool found = false;
 
-                // Leer el archivo y escribir en un archivo temporal
                 using (var reader = new StreamReader(tableFilePath))
                 using (var writer = new StreamWriter(tempFile))
                 {
@@ -178,36 +184,51 @@ namespace StoreDataManager
                     {
                         var parts = line.Split(',');
 
-                        if (parts.Length < 1)
-                        {
-                            writer.WriteLine(line); // Escribir líneas vacías
-                            continue;
-                        }
-
-                        // Suponemos que el primer elemento es el ID
                         if (int.TryParse(parts[0].Trim(), out int recordId) && recordId == id)
                         {
-                            found = true; // Marcamos que encontramos el ID
+                            found = true;
                         }
                         else
                         {
-                            writer.WriteLine(line); // Escribir la línea si no coincide con el ID
+                            writer.WriteLine(line);
                         }
                     }
                 }
 
-                // Reemplazar el archivo original por el temporal
                 File.Delete(tableFilePath);
                 File.Move(tempFile, tableFilePath);
 
-                return found ? OperationStatus.Success : OperationStatus.Error; // Retorna éxito si se eliminó un registro
+                return found ? OperationStatus.Success : OperationStatus.Error;
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error al eliminar el registro: {ex.Message}");
-                return OperationStatus.Error;  // Retorna Error si ocurre una excepción
+                return OperationStatus.Error;
             }
         }
+        // Método auxiliar para obtener la ruta completa del archivo de una tabla
+        private string? GetTableFilePath(string databaseName, string tableName)
+        {
+            string databaseDirectoryPath = Path.Combine(BaseDirectoryPath, databaseName);
 
+            // Verificar si la base de datos existe
+            if (!Directory.Exists(databaseDirectoryPath))
+            {
+                Console.WriteLine($"Error: La base de datos '{databaseName}' no existe.");
+                return null;
+            }
+
+            string tableFilePath = Path.Combine(databaseDirectoryPath, $"{tableName}.txt");
+
+            // Verificar si la tabla existe
+            if (!File.Exists(tableFilePath))
+            {
+                Console.WriteLine($"Error: La tabla '{tableName}' no existe en la base de datos '{databaseName}'.");
+                return null;
+            }
+
+            return tableFilePath;
+        }
     }
 }
+

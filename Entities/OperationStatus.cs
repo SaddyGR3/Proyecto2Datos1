@@ -8,6 +8,9 @@
         Status,
         Info,
         Fatal,
-        TableAlreadyExists
+        TableAlreadyExists,
+        DatabaseAlreadyExists,
+        DatabaseNotFound,
+        TableNotFound
     }
 }

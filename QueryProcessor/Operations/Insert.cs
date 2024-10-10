@@ -5,17 +5,9 @@ namespace QueryProcessor.Operations
 {
     internal class Insert
     {
-        public OperationStatus Execute(string sentence)
+        public OperationStatus Execute(string databaseName, string tableName, string sentence)
         {
             // Ejemplo de sentencia: "INSERT INTO Estudiantes VALUES (1, 'Pizza', 'Lunes');"
-
-            // Extraer el nombre de la tabla entre "INSERT INTO" y "VALUES"
-            var tableName = sentence.Split("INTO")[1].Split("VALUES")[0]?.Trim();
-            if (string.IsNullOrEmpty(tableName))
-            {
-                Console.WriteLine("Error: No se encontró el nombre de la tabla.");
-                return OperationStatus.Error;
-            }
 
             // Extraer la sección de valores (todo lo que está entre los paréntesis)
             var valuesSection = sentence.Split("VALUES")[1]?.Trim(' ', ';', '(', ')');
@@ -44,7 +36,7 @@ namespace QueryProcessor.Operations
             var c2 = values[2].Trim(' ', '\''); //c2 es columna 2
 
             // Llamar al Store Data Manager para insertar en la tabla especificada
-            return Store.GetInstance().InsertIntoTable(tableName, id, c1, c2);
+            return Store.GetInstance().InsertIntoTable(databaseName, tableName, id, c1, c2);
         }
     }
 }

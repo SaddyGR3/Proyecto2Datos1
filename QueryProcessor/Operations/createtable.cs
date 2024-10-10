@@ -5,17 +5,9 @@ namespace QueryProcessor.Operations
 {
     internal class CreateTable
     {
-        public OperationStatus Execute(string sentence)
+        public OperationStatus Execute(string databaseName, string tableName, string sentence)
         {
             // Ejemplo de sentencia: "CREATE TABLE nombreTabla (ID, Nombre, Apellido);"
-
-            // Extraer el nombre de la tabla desde la sentencia
-            var tableName = sentence.Split("TABLE")[1].Split('(')[0]?.Trim();
-            if (string.IsNullOrEmpty(tableName))
-            {
-                Console.WriteLine("Error: No se encontró el nombre de la tabla.");
-                return OperationStatus.Error;
-            }
 
             // Extraer la parte de las columnas (todo lo que está dentro de los paréntesis)
             var columnsPart = sentence.Split('(')[1].Split(')')[0]?.Trim();
@@ -31,7 +23,7 @@ namespace QueryProcessor.Operations
                                      .ToList();
 
             // Crear la tabla utilizando el Store Data Manager (sin tipos de datos)
-            return Store.GetInstance().CreateTable(tableName, columns);
+            return Store.GetInstance().CreateTable(databaseName, tableName, columns);
         }
     }
 }

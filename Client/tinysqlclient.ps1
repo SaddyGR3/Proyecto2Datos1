@@ -127,3 +127,5 @@ while ($true) {
 #SELECT * FROM comidas
 #DELETE FROM comidas WHERE ID = 1
 #CREATE TABLE Estudiantes (ID INT, Nombre, Apellido )
+#CREATE DATABASE Escuela;
+#SET DATABASE Escuela;
