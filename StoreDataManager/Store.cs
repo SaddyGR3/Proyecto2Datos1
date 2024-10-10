@@ -1,4 +1,5 @@
 ﻿using Entities;
+using System.ComponentModel.DataAnnotations;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 
@@ -67,33 +68,34 @@ namespace StoreDataManager
             }
         }
 
-        public OperationStatus CreateTable(string databaseName, string tableName, List<string> columns)
+        public OperationStatus CreateTable(string databaseName, string tableName, List<ColumnDefinition> columns)
         {
             try
             {
                 string databaseDirectoryPath = Path.Combine(BaseDirectoryPath, databaseName);
 
-                // Verificar si la base de datos existe
                 if (!Directory.Exists(databaseDirectoryPath))
                 {
                     Console.WriteLine($"Error: La base de datos '{databaseName}' no existe.");
                     return OperationStatus.DatabaseNotFound;
                 }
 
-                // Generar la ruta del archivo de la tabla dentro de la base de datos
                 string tableFilePath = Path.Combine(databaseDirectoryPath, $"{tableName}.txt");
 
-                // Verificar si el archivo ya existe (la tabla ya existe)
                 if (File.Exists(tableFilePath))
                 {
                     Console.WriteLine($"La tabla {tableName} ya existe en la base de datos {databaseName}.");
                     return OperationStatus.TableAlreadyExists;
                 }
 
-                // Crear el archivo de la tabla y escribir los nombres de las columnas
+                // Crear el archivo y escribir la cabecera (nombres de las columnas)
                 using (StreamWriter writer = new StreamWriter(tableFilePath))
                 {
-                    writer.WriteLine(string.Join(",", columns));
+                    // Extraer solo los nombres de las columnas
+                    var columnNames = columns.Select(col => col.ColumnName);
+
+                    // Escribir los nombres de las columnas como la primera línea del archivo
+                    writer.WriteLine(string.Join(",", columnNames));
                 }
 
                 Console.WriteLine($"Tabla {tableName} creada exitosamente en la base de datos {databaseName}.");
@@ -106,17 +108,16 @@ namespace StoreDataManager
             }
         }
 
-
-
         // Método para insertar un nuevo registro en una tabla dentro de una base de datos
-        public OperationStatus InsertIntoTable(string databaseName, string tableName, int id, string c1, string c2)
+        public OperationStatus InsertIntoTable(string databaseName, string tableName, int id, string c1, string c2, string c3, DateTime dateValue)
         {
             try
             {
                 string tableFilePath = GetTableFilePath(databaseName, tableName);
                 if (tableFilePath == null) return OperationStatus.TableNotFound;
 
-                string record = $"{id},{c1},{c2}";
+                // Formatear el registro con los cinco valores
+                string record = $"{id},{c1},{c2},{c3},{dateValue:yyyy-MM-dd HH:mm:ss}";
 
                 // Insertar el registro en el archivo de texto
                 using (StreamWriter writer = new StreamWriter(tableFilePath, append: true))
@@ -133,7 +134,6 @@ namespace StoreDataManager
                 return OperationStatus.Error;
             }
         }
-
 
 
         // Método para seleccionar todos los registros de una tabla
@@ -231,4 +231,3 @@ namespace StoreDataManager
         }
     }
 }
-

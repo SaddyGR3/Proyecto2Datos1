@@ -42,7 +42,6 @@ namespace QueryProcessor
                 var status = new CreateDatabase().Execute(dbName); // Aquí solo pasamos el nombre de la base de datos
                 return (status, null);
             }
-
             // CREATE TABLE
             if (sentence.StartsWith("CREATE TABLE", StringComparison.OrdinalIgnoreCase))
             {
@@ -53,6 +52,8 @@ namespace QueryProcessor
                     return (OperationStatus.Error, null);
                 }
 
+                Console.WriteLine($"Nombre de la tabla extraída: {tableName}");
+
                 // Verificamos que hay una base de datos seleccionada
                 if (string.IsNullOrEmpty(currentDatabase))
                 {
@@ -60,8 +61,12 @@ namespace QueryProcessor
                     return (OperationStatus.Error, null);
                 }
 
+                Console.WriteLine($"Base de datos actual para CREATE TABLE: {currentDatabase}");
+                Console.WriteLine($"Query recibido para CREATE TABLE: {sentence}");
+
                 // Llamamos a la operación CreateTable con la base de datos y la tabla
                 var status = new CreateTable().Execute(currentDatabase, tableName, sentence);
+                Console.WriteLine($"Resultado de CREATE TABLE: {status}");
                 return (status, null);
             }
 
