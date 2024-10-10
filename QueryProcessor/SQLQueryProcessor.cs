@@ -136,6 +136,7 @@ namespace QueryProcessor
             }
 
             // Si no se reconoce la sentencia
+            Console.WriteLine("Error: Sentencia SQL no reconocida.");
             throw new UnknownSQLSentenceException();  // Excepción para sentencias desconocidas
         }
     }
