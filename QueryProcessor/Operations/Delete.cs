@@ -5,16 +5,9 @@ namespace QueryProcessor.Operations
 {
     internal class Delete
     {
-        public OperationStatus Execute(string sentence)
+        public OperationStatus Execute(string databaseName,string tableName, string sentence)
         {
             // Ejemplo de sentencia: "DELETE FROM tableName WHERE ID = 1;"
-
-            var tableName = sentence.Split("FROM")[1].Split("WHERE")[0].Trim();
-            if (string.IsNullOrEmpty(tableName))
-            {
-                Console.WriteLine("Error: No se encontró el nombre de la tabla.");
-                return OperationStatus.Error;
-            }
 
             // Extraer la condición (ID = X)
             var whereClause = sentence.Split("WHERE")[1]?.Trim(' ', ';');
@@ -33,7 +26,7 @@ namespace QueryProcessor.Operations
             }
 
             // Llamar al Store Data Manager para realizar el borrado
-            return Store.GetInstance().DeleteFromTable(tableName, id);
+            return Store.GetInstance().DeleteFromTable(databaseName, tableName, id);
         }
     }
 }
