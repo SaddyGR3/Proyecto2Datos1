@@ -206,6 +206,85 @@ namespace StoreDataManager
                 return OperationStatus.Error;
             }
         }
+        public OperationStatus UpdateTable(string databaseName, string tableName, int id, Dictionary<string, string> newValues)
+        {
+            try
+            {
+                string tableFilePath = GetTableFilePath(databaseName, tableName);
+                if (tableFilePath == null) return OperationStatus.TableNotFound;
+
+                // Archivo temporal para almacenar los registros actualizados
+                var tempFile = Path.GetTempFileName();
+                bool recordFound = false;
+
+                using (var reader = new StreamReader(tableFilePath))
+                using (var writer = new StreamWriter(tempFile))
+                {
+                    string? line;
+                    string[]? headers = null;
+
+                    while ((line = reader.ReadLine()) != null)
+                    {
+                        var columns = line.Split(',');
+
+                        // Almacenar los encabezados de las columnas
+                        if (headers == null)
+                        {
+                            headers = columns;
+                            writer.WriteLine(line); // Escribimos los encabezados al archivo temporal
+                            continue;
+                        }
+
+                        // Comprobar si el registro actual es el que se debe actualizar (ID coincide)
+                        if (int.TryParse(columns[0].Trim(), out int recordId) && recordId == id)
+                        {
+                            recordFound = true;
+
+                            // Actualizamos los valores del registro según el diccionario newValues
+                            for (int i = 0; i < columns.Length; i++)
+                            {
+                                string columnName = headers[i].Trim();
+                                if (newValues.ContainsKey(columnName))
+                                {
+                                    // Actualizamos la columna con el nuevo valor
+                                    columns[i] = newValues[columnName];
+                                }
+                            }
+
+                            // Escribimos el registro actualizado al archivo temporal
+                            writer.WriteLine(string.Join(",", columns));
+                        }
+                        else
+                        {
+                            // Si no es el registro a actualizar, lo copiamos tal cual al archivo temporal
+                            writer.WriteLine(line);
+                        }
+                    }
+                }
+
+                // Reemplazamos el archivo original con el archivo temporal
+                File.Delete(tableFilePath);
+                File.Move(tempFile, tableFilePath);
+
+                if (recordFound)
+                {
+                    Console.WriteLine($"Registro con ID {id} actualizado exitosamente en la tabla {tableName}.");
+                    return OperationStatus.Success;
+                }
+                else
+                {
+                    Console.WriteLine($"Error: No se encontró ningún registro con el ID {id}.");
+                    return OperationStatus.RecordNotFound;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al actualizar el registro: {ex.Message}");
+                return OperationStatus.Error;
+            }
+        }
+
+
         // Método auxiliar para obtener la ruta completa del archivo de una tabla
         private string? GetTableFilePath(string databaseName, string tableName)
         {

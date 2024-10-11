@@ -11,7 +11,8 @@
         TableAlreadyExists,
         DatabaseAlreadyExists,
         DatabaseNotFound,
-        TableNotFound
+        TableNotFound,
+        RecordNotFound
     }
     public enum DataType
     {
