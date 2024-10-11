@@ -2,8 +2,8 @@
 {
     internal enum RequestType
     {
-        SQLSentence = 0,  // Puedes mantener esta opción si tienes solicitudes generales
-        Insert = 1,       // Agregamos tipos específicos para cada operación SQL
+        SQLSentence = 0,  
+        Insert = 1,       // se puede agregar tipos específicos para cada operación SQL
         Delete = 2,
         Select = 3
     }

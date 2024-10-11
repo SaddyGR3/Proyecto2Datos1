@@ -56,7 +56,7 @@ function Send-SQLCommand {
     # Recibe la respuesta
     $response = Receive-Message -client $client
 
-    # Detén el cronómetro y calcula el tiempo
+    # Detiene el cronómetro y calcula el tiempo
     $endTime = Get-Date
     $elapsedTime = $endTime - $startTime
 
@@ -81,7 +81,7 @@ function Send-SQLCommand {
         # La primera fila son los nombres de las columnas
         $columns = $rows[0..4]
 
-        # Iterar sobre las demás filas de datos
+        # Itera sobre las demás filas de datos
         for ($i = 5; $i -lt $rows.Length; $i += 5) {
             $data += [PSCustomObject]@{
                 ID = $rows[$i]
@@ -92,7 +92,7 @@ function Send-SQLCommand {
             }
         }
 
-        # Mostrar la tabla usando los nombres de columnas de la primera fila
+        # Muestra la tabla usando los nombres de columnas de la primera fila
         $data | Format-Table -Property $columns -AutoSize
     }
 
@@ -114,7 +114,7 @@ function Receive-Message {
     $reader = New-Object System.IO.StreamReader($stream)
     
     try {
-        $response = $reader.ReadLine()  # Leer la respuesta del servidor
+        $response = $reader.ReadLine()  # Lee la respuesta del servidor
         return $response
     }
     finally {
@@ -124,7 +124,7 @@ function Receive-Message {
 }
 
 
-# Solicitar consulta SQL del usuario de forma interactiva
+# Solicita consulta SQL del usuario de forma interactiva
 while ($true) {
     $command = Read-Host "Introduce una consulta SQL (o escribe 'salir' para terminar)"
     

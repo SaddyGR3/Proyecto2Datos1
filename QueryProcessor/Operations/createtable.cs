@@ -28,12 +28,12 @@ namespace QueryProcessor.Operations
 
                 Console.WriteLine($"Sección de columnas extraída: {columnsPart}");
 
-                // Separar las columnas correctamente, asegurando que no se pierdan columnas con paréntesis
+                // Separa las columnas correctamente, asegurando que no se pierdan columnas con paréntesis
                 var columns = columnsPart.Split(',')
                                          .Select(c => c.Trim())
                                          .ToList();
 
-                // Crear lista de ColumnDefinition, esta vez manejando correctamente el tamaño de VARCHAR
+                // Crea lista de ColumnDefinition, esta vez manejando correctamente el tamaño de VARCHAR
                 var columnDefinitions = new List<ColumnDefinition>();
 
                 foreach (var column in columns)
@@ -78,7 +78,7 @@ namespace QueryProcessor.Operations
                     Console.WriteLine($"Columna: {col.ColumnName}, Tipo: {col.DataType}, Longitud: {col.MaxLength}");
                 }
 
-                // Llamar al Store para crear la tabla con los nombres de las columnas y los tipos de datos
+                // Llama al Store para crear la tabla con los nombres de las columnas y los tipos de datos
                 var result = Store.GetInstance().CreateTable(databaseName, tableName, columnDefinitions);
 
                 // Mensaje de depuración después de llamar al Store

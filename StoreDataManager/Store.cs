@@ -34,7 +34,7 @@ namespace StoreDataManager
             InitializeBaseDirectory();
         }
 
-        // Aseguramos que el directorio base exista
+        // Asegura que el directorio base exista
         private void InitializeBaseDirectory()
         {
             if (!Directory.Exists(BaseDirectoryPath))
@@ -42,21 +42,21 @@ namespace StoreDataManager
                 Directory.CreateDirectory(BaseDirectoryPath);
             }
         }
-        // Método para crear una base de datos (directorio)
+        // Metodo para crear una base de datos (directorio)
         public OperationStatus CreateDatabase(string databaseName)
         {
             try
             {
                 string databaseDirectoryPath = Path.Combine(BaseDirectoryPath, databaseName);
 
-                // Verificar si ya existe una base de datos con ese nombre
+                // Verifica si ya existe una base de datos con ese nombre
                 if (Directory.Exists(databaseDirectoryPath))
                 {
                     Console.WriteLine($"La base de datos '{databaseName}' ya existe.");
                     return OperationStatus.DatabaseAlreadyExists;
                 }
 
-                // Crear el directorio de la base de datos
+                // Crea el directorio de la base de datos
                 Directory.CreateDirectory(databaseDirectoryPath);
                 Console.WriteLine($"Base de datos '{databaseName}' creada exitosamente.");
                 return OperationStatus.Success;
@@ -88,13 +88,13 @@ namespace StoreDataManager
                     return OperationStatus.TableAlreadyExists;
                 }
 
-                // Crear el archivo y escribir la cabecera (nombres de las columnas)
+                // Crea el archivo y escribir la cabecera (nombres de las columnas)
                 using (StreamWriter writer = new StreamWriter(tableFilePath))
                 {
-                    // Extraer solo los nombres de las columnas
+                    // Extrae solo los nombres de las columnas
                     var columnNames = columns.Select(col => col.ColumnName);
 
-                    // Escribir los nombres de las columnas como la primera línea del archivo
+                    // Escribe los nombres de las columnas como la primera línea del archivo
                     writer.WriteLine(string.Join(",", columnNames));
                 }
 
@@ -116,10 +116,10 @@ namespace StoreDataManager
                 string tableFilePath = GetTableFilePath(databaseName, tableName);
                 if (tableFilePath == null) return OperationStatus.TableNotFound;
 
-                // Formatear el registro con los cinco valores
+                // Formatea el registro con los cinco valores
                 string record = $"{id},{c1},{c2},{c3},{dateValue:yyyy-MM-dd HH:mm:ss}";
 
-                // Insertar el registro en el archivo de texto
+                // Inserta el registro en el archivo de texto
                 using (StreamWriter writer = new StreamWriter(tableFilePath, append: true))
                 {
                     writer.WriteLine(record);
@@ -136,7 +136,7 @@ namespace StoreDataManager
         }
 
 
-        // Método para seleccionar todos los registros de una tabla
+        // Metodo para seleccionar todos los registros de una tabla
         public (OperationStatus, List<string>) SelectFromTable(string databaseName, string tableName)
         {
             try
@@ -211,7 +211,7 @@ namespace StoreDataManager
         {
             string databaseDirectoryPath = Path.Combine(BaseDirectoryPath, databaseName);
 
-            // Verificar si la base de datos existe
+            // Verifica si la base de datos existe
             if (!Directory.Exists(databaseDirectoryPath))
             {
                 Console.WriteLine($"Error: La base de datos '{databaseName}' no existe.");
@@ -220,7 +220,7 @@ namespace StoreDataManager
 
             string tableFilePath = Path.Combine(databaseDirectoryPath, $"{tableName}.txt");
 
-            // Verificar si la tabla existe
+            // Verifica si la tabla existe
             if (!File.Exists(tableFilePath))
             {
                 Console.WriteLine($"Error: La tabla '{tableName}' no existe en la base de datos '{databaseName}'.");
@@ -232,4 +232,3 @@ namespace StoreDataManager
     }
 }
 
-//fixed

@@ -77,7 +77,7 @@ namespace ApiInterface
                 return new Response
                 {
                     Status = status,
-                    Request = requestObject,  // Inicializamos correctamente 'Request'
+                    Request = requestObject, 
                     ResponseBody = status == OperationStatus.Success
                         ? (resultList != null ? string.Join(", ", resultList) : "Operation successful")
                         : "Operation failed"
@@ -89,7 +89,7 @@ namespace ApiInterface
                 return new Response
                 {
                     Status = OperationStatus.Error,
-                    Request = requestObject,  // Asegúrate de pasar el objeto 'requestObject', aunque sea el que falló
+                    Request = requestObject,  //
                     ResponseBody = "Error processing the request."
                 };
             }
@@ -101,9 +101,9 @@ namespace ApiInterface
             using (NetworkStream stream = new NetworkStream(handler))
             using (StreamWriter writer = new StreamWriter(stream))
             {
-                // Serializamos el objeto Response a JSON y lo enviamos
+                // Serializa el objeto Response a JSON y lo enviamos
                 writer.WriteLine(JsonSerializer.Serialize(response));
-                writer.Flush();  // Asegurarse de que todo el contenido se envíe
+                writer.Flush();  // Asegura de que todo el contenido se envíe
             }
         }
 

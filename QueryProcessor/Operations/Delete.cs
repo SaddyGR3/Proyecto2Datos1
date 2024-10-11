@@ -9,7 +9,7 @@ namespace QueryProcessor.Operations
         {
             // Ejemplo de sentencia: "DELETE FROM tableName WHERE ID = 1;"
 
-            // Extraer la condición (ID = X)
+            // Extrae la condición (ID = X)
             var whereClause = sentence.Split("WHERE")[1]?.Trim(' ', ';');
             if (string.IsNullOrEmpty(whereClause))
             {
@@ -17,7 +17,7 @@ namespace QueryProcessor.Operations
                 return OperationStatus.Error;
             }
 
-            // Extraemos el ID de la condición
+            // Extrae la cndicion del ID
             var idString = whereClause.Split('=')[1].Trim();
             if (!int.TryParse(idString, out int id))
             {
@@ -25,7 +25,7 @@ namespace QueryProcessor.Operations
                 return OperationStatus.Error;
             }
 
-            // Llamar al Store Data Manager para realizar el borrado
+            //Llama al Store Data Manager para realizar el borrado
             return Store.GetInstance().DeleteFromTable(databaseName, tableName, id);
         }
     }

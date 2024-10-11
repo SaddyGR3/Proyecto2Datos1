@@ -5,7 +5,7 @@ using StoreDataManager;
 
 namespace QueryProcessor
 {
-    public class SQLQueryProcessor //prob hay que borrar el null de cada return,capaz da error
+    public class SQLQueryProcessor
     {
         // Variable para almacenar la base de datos actual
         private static string currentDatabase = null;
@@ -22,13 +22,13 @@ namespace QueryProcessor
                     return (OperationStatus.Error, null);
                 }
 
-                // Actualizamos la base de datos actual
+                // Actualiza la base de datos actual
                 currentDatabase = dbName;
                 Console.WriteLine($"Base de datos actualizada: {currentDatabase}");
                 return (OperationStatus.Success, null);
             }
 
-            // CREATE DATABASE (esta parte la agregamos)
+            // CREATE DATABASE
             if (sentence.StartsWith("CREATE DATABASE", StringComparison.OrdinalIgnoreCase))
             {
                 var dbName = sentence.Split("DATABASE")[1]?.Trim(' ', ';');
@@ -54,7 +54,7 @@ namespace QueryProcessor
 
                 Console.WriteLine($"Nombre de la tabla extraída: {tableName}");
 
-                // Verificamos que hay una base de datos seleccionada
+                // Verifica que hay una base de datos seleccionada
                 if (string.IsNullOrEmpty(currentDatabase))
                 {
                     Console.WriteLine("Error: No se ha seleccionado ninguna base de datos.");
@@ -64,7 +64,7 @@ namespace QueryProcessor
                 Console.WriteLine($"Base de datos actual para CREATE TABLE: {currentDatabase}");
                 Console.WriteLine($"Query recibido para CREATE TABLE: {sentence}");
 
-                // Llamamos a la operación CreateTable con la base de datos y la tabla
+                // Llama a la operación CreateTable con la base de datos y la tabla
                 var status = new CreateTable().Execute(currentDatabase, tableName, sentence);
                 Console.WriteLine($"Resultado de CREATE TABLE: {status}");
                 return (status, null);
@@ -80,14 +80,14 @@ namespace QueryProcessor
                     return (OperationStatus.Error, null);
                 }
 
-                // Verificamos que hay una base de datos seleccionada
+                // Verifica que hay una base de datos seleccionada
                 if (string.IsNullOrEmpty(currentDatabase))
                 {
                     Console.WriteLine("Error: No se ha seleccionado ninguna base de datos.");
                     return (OperationStatus.Error, null);
                 }
 
-                // Llamamos a la operación Insert con la base de datos, la tabla y la sentencia
+                // Llama a la operación Insert con la base de datos, la tabla y la sentencia
                 var status = new Insert().Execute(currentDatabase, tableName, sentence);
                 return (status, null);
             }
@@ -102,14 +102,14 @@ namespace QueryProcessor
                     return (OperationStatus.Error, null);
                 }
 
-                // Verificamos que hay una base de datos seleccionada
+                // Verifica que hay una base de datos seleccionada
                 if (string.IsNullOrEmpty(currentDatabase))
                 {
                     Console.WriteLine("Error: No se ha seleccionado ninguna base de datos.");
                     return (OperationStatus.Error, null);
                 }
 
-                // Llamamos a la operación Delete con la base de datos y la tabla
+                // Llama a la operación Delete con la base de datos y la tabla
                 var status = new Delete().Execute(currentDatabase, tableName, sentence);
                 return (status, null);
             }
@@ -124,14 +124,14 @@ namespace QueryProcessor
                     return (OperationStatus.Error, null);
                 }
 
-                // Verificamos que hay una base de datos seleccionada
+                // Verifica que hay una base de datos seleccionada
                 if (string.IsNullOrEmpty(currentDatabase))
                 {
                     Console.WriteLine("Error: No se ha seleccionado ninguna base de datos.");
                     return (OperationStatus.Error, null);
                 }
 
-                // Llamamos a la operación Select con la base de datos y la tabla
+                // Llama a la operación Select con la base de datos y la tabla
                 return new Select().Execute(currentDatabase, tableName, sentence);
             }
 
