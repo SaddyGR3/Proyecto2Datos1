@@ -227,7 +227,7 @@ namespace StoreDataManager
                     {
                         var columns = line.Split(',');
 
-                        // Almacenar los encabezados de las columnas
+                        // Almacena los encabezados de las columnas
                         if (headers == null)
                         {
                             headers = columns;
@@ -235,7 +235,7 @@ namespace StoreDataManager
                             continue;
                         }
 
-                        // Comprobar si el registro actual es el que se debe actualizar (ID coincide)
+                        // Comprueba si el registro actual es el que se debe actualizar (ID coincide)
                         if (int.TryParse(columns[0].Trim(), out int recordId) && recordId == id)
                         {
                             recordFound = true;
@@ -251,18 +251,18 @@ namespace StoreDataManager
                                 }
                             }
 
-                            // Escribimos el registro actualizado al archivo temporal
+                            // Escribe el registro actualizado al archivo temporal
                             writer.WriteLine(string.Join(",", columns));
                         }
                         else
                         {
-                            // Si no es el registro a actualizar, lo copiamos tal cual al archivo temporal
+                            // Si no es el registro a actualizar, lo copia tal cual al archivo temporal
                             writer.WriteLine(line);
                         }
                     }
                 }
 
-                // Reemplazamos el archivo original con el archivo temporal
+                //Reemplazamos el archivo original con el archivo temporal
                 File.Delete(tableFilePath);
                 File.Move(tempFile, tableFilePath);
 
